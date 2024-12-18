@@ -172,7 +172,7 @@ function ChatbotPage({ onLogout }) {
         )}
       </div>
 
-      <h1>PHAMA ਫਾਮਾ</h1>
+      <h1 className="title">PHAMA ਫਾਮਾ</h1>
       <div className="chat-box" ref={chatBoxRef}>
         {messages.length > 0 ? (
           messages.map((msg) => (
@@ -204,6 +204,11 @@ function ChatbotPage({ onLogout }) {
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  }}
             placeholder="Type a message..."
             className="input-field"
           />

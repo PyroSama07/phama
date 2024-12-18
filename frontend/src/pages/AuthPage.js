@@ -11,16 +11,15 @@ function AuthPage({ setAuthenticated }) {
     password: "",
   });
 
-  const navigate = useNavigate(); // Hook for navigation the chatbot page
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       if (isLogin) {
-        // Login logic
         const loginData = new URLSearchParams();
-        loginData.append("username", formData.username.trim()); // trime user name of the additional spaces
+        loginData.append("username", formData.username.trim());
         loginData.append("password", formData.password);
         const response = await axios.post(
           `${process.env.REACT_APP_API_KEY}/token`,
@@ -36,10 +35,9 @@ function AuthPage({ setAuthenticated }) {
           console.log(response.data);
           localStorage.setItem("token", response.data.access_token);
           setAuthenticated(true);
-          navigate("/"); // Redirect to Chatbot page
+          navigate("/");
         }
       } else {
-        // Signup logic
         const signupData = {
           name: formData.name.trim(),
           username: formData.username.trim(),
@@ -70,6 +68,11 @@ function AuthPage({ setAuthenticated }) {
 
   return (
     <div className="auth-container">
+      {/* Add a text div to the top-left corner */}
+      <div className="top-left-text">
+        <p>PHAMA</p>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <h1>{isLogin ? "Login" : "Sign Up"}</h1>
 
@@ -106,7 +109,7 @@ function AuthPage({ setAuthenticated }) {
         </button>
 
         <button className="switch-button" onClick={() => setIsLogin(!isLogin)}>
-          {isLogin ? "Dont't have an account? Sign Up" : "Click here to Login"}
+          {isLogin ? "Don't have an account? Sign Up" : "Click here to Login"}
         </button>
       </form>
     </div>

@@ -83,3 +83,20 @@
     padding: 0 20%;
   }
 }
+.auth-container {
+  position: relative;
+}
+
+.top-left-text {
+  position: absolute;
+  top: -5px;
+  left: 20px;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 
+    -2px -2px 0 #000, /* Top-left shadow */
+    2px -2px 0 #000,  /* Top-right shadow */
+    -2px 2px 0 #000,  /* Bottom-left shadow */
+    2px 2px 0 #000;   /* Bottom-right shadow */
+}

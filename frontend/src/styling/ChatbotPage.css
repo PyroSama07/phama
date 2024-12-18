@@ -10,11 +10,95 @@
   overflow: hidden;
 }
 
-/* Menu styles */
+/* Menu container */
+.menu {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* Dots representing the menu */
+.dots {
+  font-size: 24px;
+  color: #333;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.menu:hover .dots {
+  color: #007bff; /* Highlight color on hover */
+}
+
+/* Dropdown menu options */
+.menu-options {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  background-color: lightgray;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  
+}
+
+/* Menu user text */
+.menu-user {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+/* Buttons inside the menu */
+.menu-options button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  margin: 5px 0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.menu-options button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.menu-options button:active {
+  transform: scale(0.95);
+}
+
+/* Ensure the menu does not overlap awkwardly */
+.menu-options::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: -10px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #fff transparent transparent;
+}
+
+
+
+/* Menu styles
 .menu {
   position: absolute;
   top: 1rem;
   left: 1rem;
+  
 }
 
 .menu-user {
@@ -54,7 +138,7 @@
 .menu-options button:hover {
   background-color: #ffffff82;
   border-radius: 10px;
-}
+} */
 
 /* Chatbox styles */
 .chat-box {
@@ -89,6 +173,7 @@
   color: white;
   align-self: flex-end;
   padding: auto;
+  margin: 2px;
 }
 
 .bot-message {
@@ -96,7 +181,7 @@
   color: white;
   align-self: flex-start;
   padding: auto;
-  
+  margin: 2px;
 }
 
 .message-time {
