@@ -1,0 +1,7 @@
+.env
+mysql_data/*
+qdrant_data/*
+depreciated/
+*__pycache__*
+*.ipynb*
+*vectorenv

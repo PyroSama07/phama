@@ -1,0 +1,77 @@
+/* Background settings */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  padding-left: 50%;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: url("./bgimg.jpg") no-repeat center center fixed;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glass effect for form container */
+.auth-container form {
+  position: relative;
+  z-index: 2;
+  background-color: hsla(0, 0%, 100%, 0.9);
+  backdrop-filter: saturate(200%) blur(25px);
+  border-radius: 10px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+/* Form elements */
+.auth-container h1 {
+  height: 60px;
+  width: 100%;
+  padding-top: 10px;
+  margin-top: 0.2rem;
+  background-color: blanchedalmond;
+  color: #2f4f4f;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.auth-container input {
+  width: 92%;
+  padding: 0.8rem;
+  margin: 0.5rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  margin-top: 1rem;
+  background-color: cadetblue;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #ad1fffc7;
+}
+.switch-button {
+  background: transparent;
+  font-size: 1rem;
+  color: #000000;
+  border: none;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.switch-button:hover {
+  text-decoration: underline;
+}

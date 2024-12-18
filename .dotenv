@@ -1,0 +1,9 @@
+QDRANT_ENV=dev
+QDRANT_URL=http://qdrant:6333
+MYSQL_URL=mysql://root:rootpassword@mysql:3306/phama_db
+MYSQL_ROOT_PASSWORD=rootpassword
+MYSQL_DATABASE=phama_db
+MYSQL_USER=user
+MYSQL_PASSWORD=pass
+JWT_KEY=
+RABBITMQ_URL=amqp://guest:guest@localhost/

@@ -1,0 +1,80 @@
+services:
+  qdrant:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile.qdrant
+    restart: unless-stopped
+    container_name: qdrant_phama
+    ports:
+      - 6333:6333
+    environment:
+      - RUN_MODE=${QDRANT_ENV}
+    volumes:
+      - ./qdrant_data:/qdrant/storage
+      # - ./qdrant_config.yaml:/qdrant/config/dev.yaml
+    healthcheck:
+      test: ["CMD", "curl","-f","http://localhost:6333/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_phama
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  rabbitmq-broker:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile.rabbitmq
+    container_name: rabbitmq-broker
+    restart: unless-stopped
+    ports:
+      - "5672:5672"  # AMQP protocol port
+      - "15672:15672"  # RabbitMQ management UI
+    healthcheck:
+      test: ["CMD", "curl","-f","http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.fastapi
+    restart: unless-stopped
+    container_name: fastapi-app_phama
+    depends_on:
+      qdrant:
+          condition: service_healthy
+      mysql:
+          condition: service_healthy
+      rabbitmq-broker:
+          condition: service_healthy
+    ports:
+      - 8000:8000
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl","-f","http://localhost:8000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
