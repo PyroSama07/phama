@@ -209,7 +209,6 @@
 
 .send-button {
   padding: 0.8rem;
-  margin-left: 1rem;
   font-size: 0.9rem;
   border: none;
   border-radius: 10px;
@@ -219,6 +218,17 @@
   font-weight: bold;
   transition: all 0.3s ease;
 }
+
+.file-upload-button{
+  border: none;
+  background: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}
+
+
 
 .mic-button {
   border: none;
@@ -243,7 +253,7 @@
 
 .mic-button {
   position: absolute;
-  right: 100px;
+  right: 120px;
   background: none;
   border: none;
   cursor: pointer;
