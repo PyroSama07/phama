@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import jwt
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext # JWT
@@ -191,3 +191,30 @@ async def logout(token: Annotated[str, Depends(oauth2_scheme)]):
 @app.delete("/delete_all_messages", status_code=204)
 def delete_all_messages(current_user: Annotated[User, Depends(get_current_active_user)], db: Session = Depends(get_db)):
     return crud.delete_all_messages_of_user(db, user_id=current_user.id)
+
+@app.post("/upload_image", response_model=schemas.Message)
+def upload_image(
+    file: Annotated[UploadFile, File(...)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Session = Depends(get_db)
+):
+    if file.content_type not in ["image/jpeg", "image/png"]:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG and PNG are supported.")
+    
+    image_data = getImageOCR()
+    
+    crud.save_message(db, msg=image_data, sender=False, user_id=current_user.id)
+    
+    response_message = get_responce_RAG(image_data)
+
+    message = crud.save_message(db, msg=response_message, sender=True, user_id=current_user.id)
+
+    return {
+        "id": message.id,
+        "msg": message.msg,
+        "user_id": message.user_id,
+        "time_stamp": message.time_stamp
+    }
+
+def getImageOCR():
+    return "sending image data"
