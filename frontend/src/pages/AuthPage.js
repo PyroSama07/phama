@@ -71,7 +71,7 @@ function AuthPage({ setAuthenticated }) {
   return (
     <div className="auth-container">
       <form onSubmit={handleSubmit}>
-        <h1>{isLogin ? "PHAMA Login" : "PHAMA Sign Up"}</h1>
+        <h1>{isLogin ? "Login" : "Sign Up"}</h1>
 
         {!isLogin && (
           <input
@@ -106,7 +106,7 @@ function AuthPage({ setAuthenticated }) {
         </button>
 
         <button className="switch-button" onClick={() => setIsLogin(!isLogin)}>
-          {isLogin ? "Dont't have an account? Sign Up" : "or Login here"}
+          {isLogin ? "Dont't have an account? Sign Up" : "Click here to Login"}
         </button>
       </form>
     </div>

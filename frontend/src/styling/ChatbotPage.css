@@ -1,15 +1,13 @@
-
 .chatbot-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 93vh;
-  background: url('./bgimg.jpg') no-repeat center center fixed;
+  height: 100vh;
+  background: url("./bgimg.jpg") no-repeat center center fixed;
   background-size: cover;
   position: relative;
   overflow: hidden;
-  padding: 2rem;
 }
 
 /* Menu styles */
@@ -25,7 +23,6 @@
   margin-bottom: 0.5rem;
   color: #333;
 }
-
 
 .dots {
   font-size: 2rem;
@@ -73,6 +70,9 @@
   flex-direction: column;
   justify-content: space-between;
 }
+.chat-box::-webkit-scrollbar {
+  display: none; /* Hides the scrollbar in webkit browsers (Chrome, Safari) */
+}
 
 /* Chat message styles */
 .chat-message {
@@ -88,12 +88,15 @@
   background-color: #be4fffc7;
   color: white;
   align-self: flex-end;
+  padding: auto;
 }
 
 .bot-message {
   background-color: #4c9292;
   color: white;
   align-self: flex-start;
+  padding: auto;
+  
 }
 
 .message-time {
@@ -132,6 +135,42 @@
   transition: all 0.3s ease;
 }
 
+.mic-button {
+  border: none;
+  background: white;
+}
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  padding-right: 40px; /* Add extra space to the right for the mic icon */
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+}
+
+.mic-button {
+  position: absolute;
+  right: 100px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}
+
+.mic-button svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
 .send-button:hover {
   background-color: #ad1fffc7;
 }
@@ -142,4 +181,13 @@
   font-size: 2.5rem;
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+@media only screen and (max-width: 600px) {
+  .chat-box {
+    width: fit-content;
+    border-radius: 0;
+  }
+  .chat-message.user-message {
+    margin: 5px;
+  }
 }

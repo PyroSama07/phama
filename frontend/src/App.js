@@ -8,6 +8,7 @@ import {
 import ChatbotPage from "./pages/ChatbotPage";
 import AuthPage from "./pages/AuthPage";
 
+
 function App() {
   const [authenticated, setAuthenticated] = useState(
     !!localStorage.getItem("token")

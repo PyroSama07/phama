@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+// import { FaMicrophone } from "react-icons/fa";
 import "../styling/ChatbotPage.css";
 
 function ChatbotPage({ onLogout }) {
@@ -7,6 +8,7 @@ function ChatbotPage({ onLogout }) {
   const [newMessage, setNewMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState(""); // To store user's name
+  const [isListening, setIsListening] = useState(false); // To handle listening state
   const token = localStorage.getItem("token");
   const chatBoxRef = useRef(null);
 
@@ -114,6 +116,39 @@ function ChatbotPage({ onLogout }) {
     }
   };
 
+  const handleSpeechToText = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Your browser does not support speech recognition.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "pa-IN"; // Set language to Punjabi (India)
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setNewMessage(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      alert(`Error: ${event.error}`);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
   const scrollToBottom = () => {
     if (chatBoxRef.current) {
       chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
@@ -164,13 +199,29 @@ function ChatbotPage({ onLogout }) {
         )}
 
         <div className="input-area">
+          
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
+            className="input-field"
           />
-
+          <button
+            onClick={handleSpeechToText}
+            className="mic-button"
+            style={{ color: isListening ? "red" : "#333" }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill={isListening ? "red" : "currentColor"}
+              width="24px"
+              height="24px"
+            >
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zm4.3-3c0 2.89-2.4 5.3-5.3 5.3s-5.3-2.41-5.3-5.3H3c0 4.1 3.1 7.45 7 7.93V22h4v-2.07c3.9-.48 7-3.83 7-7.93h-2.7z" />
+            </svg>
+          </button>
           <button onClick={sendMessage} className="send-button">
             Send
           </button>
