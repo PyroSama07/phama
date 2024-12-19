@@ -78,3 +78,13 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  worker:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.worker
+    restart: unless-stopped
+    container_name: worker_phama
+    depends_on:
+      rabbitmq-broker:
+          condition: service_healthy
