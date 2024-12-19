@@ -13,8 +13,8 @@ import json
 load_dotenv()
 
 QDRANT_URL=os.getenv('QDRANT_URL')
-# RABBITMQ_URL = os.getenv('RABBITMQ_URL')
-RABBITMQ_URL="amqp://guest:guest@localhost/"
+RABBITMQ_URL = os.getenv('RABBITMQ_URL')
+# RABBITMQ_URL="amqp://guest:guest@localhost/"
 
 model_name = 'l3cube-pune/punjabi-sentence-similarity-sbert'
 embeddings = HuggingFaceEmbeddings(

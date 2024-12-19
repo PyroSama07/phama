@@ -45,3 +45,5 @@ uvloop==0.21.0
 watchfiles==1.0.3
 websockets==14.1
 yarl==1.18.3; python_version >= '3.9'
+pytesseract>=0.3.10  # Python wrapper for Tesseract OCR
+pillow>=10.0.0       # Image processing library for handling image formats

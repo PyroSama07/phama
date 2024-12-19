@@ -3,17 +3,22 @@ from typing import Annotated
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
+import aio_pika
 import jwt
+import asyncio
 from fastapi import Depends, FastAPI, HTTPException, status, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext # JWT
 from pydantic import BaseModel
-
+import uuid
+import json
 import crud, models, schemas
 from schemas import User
 from schemas import UserInDB
+from io import BytesIO
+from PIL import Image
+import pytesseract
 
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
@@ -21,6 +26,57 @@ from sqlalchemy.orm import Session
 # CROS
 from fastapi.middleware.cors import CORSMiddleware
 origins = ["*"]
+
+# RABBITMQ_URL = "amqp://guest:guest@localhost/"
+RABBITMQ_URL=os.getenv('RABBITMQ_URL')
+
+class RabbitMQClient:
+    """Handles RabbitMQ interactions."""
+    def __init__(self):
+        self.loop = asyncio.get_event_loop()
+        self.response_futures = {}
+
+    async def setup(self):
+        """Sets up RabbitMQ connection and callback queue."""
+        self.connection = await aio_pika.connect_robust(RABBITMQ_URL)
+        self.channel = await self.connection.channel()
+        self.callback_queue = await self.channel.declare_queue("chat_reply", exclusive=True)
+        await self.callback_queue.consume(self.on_response)
+
+    async def on_response(self, message: aio_pika.IncomingMessage):
+        async with message.process():
+            correlation_id = message.correlation_id
+            print(f"Received response with Correlation ID: {correlation_id}")
+            if correlation_id in self.response_futures:
+                self.response_futures[correlation_id].set_result(json.loads(message.body))
+                del self.response_futures[correlation_id]
+            else:
+                print(f"Unexpected Correlation ID: {correlation_id}")
+
+
+    async def send_request(self, prompt: str):
+        """Sends a chat request to RabbitMQ and waits for a response."""
+        correlation_id = str(uuid.uuid4())
+        future = self.loop.create_future()
+        self.response_futures[correlation_id] = future
+
+        await self.channel.default_exchange.publish(
+            aio_pika.Message(
+                body=json.dumps({"prompt": prompt, "reply_to": self.callback_queue.name}).encode(),
+                correlation_id=correlation_id,
+            ),
+            routing_key="chat_requests",
+        )
+        print(self.response_futures)
+        # Wait for the response or timeout after 30 seconds
+        try:
+            return await asyncio.wait_for(future, timeout=100.0)
+        except asyncio.TimeoutError:
+            del self.response_futures[correlation_id]
+            raise HTTPException(status_code=504, detail="Chatbot response timed out.")
+
+# Instantiate RabbitMQ client
+rabbitmq_client = RabbitMQClient()
 
 #JWT
 # to create secret key run= openssl rand -hex 32
@@ -47,6 +103,10 @@ class TokenData(BaseModel):
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
+@app.on_event("startup")
+async def startup_event():
+    """Setup RabbitMQ connection on startup."""
+    await rabbitmq_client.setup()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # CROS origin add
@@ -163,11 +223,12 @@ def create_user(user: schemas.UserCreate, db: Session=Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 @app.post("/send_message", response_model = schemas.Message)
-def add_message(message:schemas.MessageBase, current_user: Annotated[User, Depends(get_current_active_user)], db: Session=Depends(get_db)):
+async def add_message(message:schemas.MessageBase, current_user: Annotated[User, Depends(get_current_active_user)], db: Session=Depends(get_db)):
     # save user's message
     crud.save_message(db, msg = message.msg, sender=False, user_id=current_user.id)
     # get responce form model
-    responce_message =  get_responce_RAG(message.msg)
+    responce_message =  await get_responce_RAG(message.msg)
+    # output = json.load(responce_message)["response"]
     # save model's message
     m = crud.save_message(db, msg=responce_message, sender=True, user_id=current_user.id)
     return m
@@ -176,12 +237,12 @@ def add_message(message:schemas.MessageBase, current_user: Annotated[User, Depen
 def get_all_messages(current_user: Annotated[User, Depends(get_current_active_user)], db: Session=Depends(get_db)):
     return crud.get_all_messages_of_user(db, user_id=current_user.id)
 
-def get_responce_RAG(message=str):
-    if message=="ਮਿਰਚ ਦੇ ਫ਼ਲ ਦੇ ਗੜੂੰਆਂ ਨੂੰ ਰੋਕਣ ਲਈ ਕਿਹੜੀ ਦਵਾਈ ਵਰਤੀ ਜਾ ਸਕਦੀ ਹੈ?":
-        return "ਮਿਰਚ ਦੇ ਫ਼ਲ ਦੇ ਗੜੂੰਆਂ ਦੀ ਰੋਕਥਾਮ ਲਈ 50 ਮਿਲੀਲਿਟਰ ਕੋਰਾਜਨ 18.5 ਐਸ ਸੀ (ਕਲੋਰਐਂਟਰਾਨੀਲੀਪਰੋਲ) ਜਾਂ 50 ਮਿਲੀਲਿਟਰ ਟਰੇਸਰ 45 ਐਸ ਸੀ (ਸਪਾਈਨੋਸੈਡ) ਨੂੰ 100 ਲਿਟਰ ਪਾਣੀ ਵਿੱਚ ਮਿਲਾ ਕੇ ਏਕੜ ਵਿੱਚ ਛਿੜਕਾਅ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ।"
-    if message=="ਖਰਬੂਜ਼ੇ ਦੀ ਫ਼ਸਲ ਲਈ ਕਿਹੜਾ ਤਾਪਮਾਨ ਢੁੱਕਵਾਂ ਹੈ?":
-        return "ਖਰਬੂਜ਼ੇ ਦੀ ਫ਼ਸਲ ਲਈ 27 ਤੋਂ 30 ਡਿਗਰੀ ਸੈਂਟੀਗ੍ਰੇਡ ਤਾਪਮਾਨ ਢੁੱਕਵਾਂ ਹੁੰਦਾ ਹੈ।"
-    return "This is the responce message form RAG model"
+async def get_responce_RAG(message=str):
+    try:
+        response = await rabbitmq_client.send_request(message)
+        return response.get("response")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/logout")
 async def logout(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -193,7 +254,7 @@ def delete_all_messages(current_user: Annotated[User, Depends(get_current_active
     return crud.delete_all_messages_of_user(db, user_id=current_user.id)
 
 @app.post("/upload_image", response_model=schemas.Message)
-def upload_image(
+async def upload_image(
     file: Annotated[UploadFile, File(...)],
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Session = Depends(get_db)
@@ -201,20 +262,31 @@ def upload_image(
     if file.content_type not in ["image/jpeg", "image/png"]:
         raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG and PNG are supported.")
     
-    image_data = getImageOCR()
+    image_data = getImageOCR(file)
     
     crud.save_message(db, msg=image_data, sender=False, user_id=current_user.id)
     
-    response_message = get_responce_RAG(image_data)
+    response_message = await get_responce_RAG(image_data)
 
     message = crud.save_message(db, msg=response_message, sender=True, user_id=current_user.id)
 
-    return {
-        "id": message.id,
-        "msg": message.msg,
-        "user_id": message.user_id,
-        "time_stamp": message.time_stamp
-    }
+    return message
+    # return {
+    #     "id": message.id,
+    #     "msg": message.msg,
+    #     "user_id": message.user_id,
+    #     "time_stamp": message.time_stamp
+    # }
 
-def getImageOCR():
-    return "sending image data"
+
+def getImageOCR(file: UploadFile) -> str:
+    try:
+        image_bytes = file.file.read()
+      
+        image = Image.open(BytesIO(image_bytes))
+        
+        text = pytesseract.image_to_string(image, lang="pan")  
+
+        return text.strip()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"OCR failed: {str(e)}")

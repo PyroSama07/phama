@@ -85,6 +85,8 @@ services:
       dockerfile: dockerfiles/Dockerfile.worker
     restart: unless-stopped
     container_name: worker_phama
+    volumes:
+      - /home/pyrosama/.cache:/root/.cache
     depends_on:
       rabbitmq-broker:
           condition: service_healthy
